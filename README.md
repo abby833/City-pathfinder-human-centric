@@ -2,7 +2,7 @@
 
 [![C++ Unit Tests](https://github.com/abby833/City-pathfinder/actions/workflows/ci.yml/badge.svg)](https://github.com/abby833/City-pathfinder/actions)
 
-A high-performance hybrid navigation system that calculates the shortest path between two street addresses using real-world data from OpenStreetMap. 
+A high-performance hybrid navigation system that calculates the shortest path between two street addresses using real-world data from OpenStreetMap.
 
 ![Navigation Demo](demo0.png)
 ![Navigation Demo](demo1.png)
@@ -32,9 +32,13 @@ This project follows a "Separation of Concerns" modular design to ensure high pe
 4. **Web Interface (Python Frontend):** Provides an autocomplete-enabled UI and communicates seamlessly with the C++ backend via HTTP requests.
 5. **Visualization:** The computed route is rendered instantly as an interactive Polyline.
 
+---
+
 ## How to Build and Run
 
-To get the system running, you need to start both the backend server and the frontend interface.
+### Prerequisites
+- **C++ Compiler** supporting C++17 and **CMake**.
+- **Python 3.8+** installed on your system.
 
 ### 1. Build the C++ Engine (CMake)
 ```bash
@@ -42,18 +46,3 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
-
-### 2. Run the Application (Two-Terminal Setup)
-# On Windows:
-.\build\Debug\navigator.exe
-# On Linux/Mac:
-./build/navigator
-
-Open a new terminal and run the Streamlit interface: python -m streamlit run web_app.py
-
-### 3. Run the Unit Tests
-To verify the core logic:
-# On Windows:
-.\build\Debug\run_tests.exe
-# On Linux/Mac:
-./build/run_tests
