@@ -1,1 +1,2 @@
 tests/catch.hpp linguist-vendored
+src/httplib.h linguist-vendored
