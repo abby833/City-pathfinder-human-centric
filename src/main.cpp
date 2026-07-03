@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector> 
+#include "httplib.h"
 #include "trie.h"
 #include "graph.h" 
 
@@ -28,55 +29,54 @@ void loadStreetsIntoTrie(Trie& trie) {
     file.close();
 }
 
-int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        std::cerr << "Utilizare: " << argv[0] << " <NumeStart> <NumeDestinatie>" << std::endl;
-        return 1;
-    }
-
-    std::string startName = argv[1];
-    std::string endName = argv[2];
+int main() {
+    std::cout << "--- Initializare Server Backend ---" << std::endl;
 
     Trie streetsTrie;
+    std::cout << "1. Incarc strazile in Trie..." << std::endl;
     loadStreetsIntoTrie(streetsTrie);
 
-    std::string startID = streetsTrie.search(startName);
-    std::string endID = streetsTrie.search(endName);
-
-    if (startID == "NOT_FOUND") {
-        std::cerr << "Eroare: Strada '" << startName << "' nu a fost gasita!" << std::endl;
-        return 1;
-    }
-    if (endID == "NOT_FOUND") {
-        std::cerr << "Eroare: Strada '" << endName << "' nu a fost gasita!" << std::endl;
-        return 1;
-    }
-
     Graph G;
-    std::cout << "Incarc graful..." << std::endl;
+    std::cout << "2. Incarc graful..." << std::endl;
     G.loadFromFile("src/statii.txt");
-    
-    std::cout << "Calculez ruta de la " << startID << " la " << endID << "..." << std::endl;
-    
-    std::vector<std::string> path = G.Dijkstra(startID, endID);
 
-    if (path.empty()) {
-        std::cout << "Nu exista drum intre " << startName << " si " << endName << std::endl;
-        return 1;
-    }
+    std::cout << "Datele au fost incarcate cu succes in memoria RAM!" << std::endl;
 
-    std::ofstream outFile("src/traseu.txt");
-    if (!outFile.is_open()) {
-        std::cerr << "Eroare: Nu am putut crea fisierul 'src/traseu.txt'!" << std::endl;
-        return 1;
-    }
+    httplib::Server svr;
 
-    for (const auto& node : path) {
-        outFile << node << std::endl;
-    }
-    outFile.close();
-    
-    std::cout << "Traseul a fost salvat cu succes in 'src/traseu.txt' pentru aplicatia Python." << std::endl;
+    svr.Get("/get_route", [&](const httplib::Request& req, httplib::Response& res) {
+        
+        std::string startName = req.get_param_value("start");
+        std::string endName = req.get_param_value("end");
+
+        std::cout << "\n[Request Nou] Calculez ruta: " << startName << " -> " << endName << std::endl;
+
+        std::string startID = streetsTrie.search(startName);
+        std::string endID = streetsTrie.search(endName);
+
+        if (startID == "NOT_FOUND" || endID == "NOT_FOUND") {
+            res.set_content("EROARE: Una dintre strazi nu a fost gasita.", "text/plain");
+            return;
+        }
+
+        std::vector<std::string> path = G.Dijkstra(startID, endID);
+
+        if (path.empty()) {
+            res.set_content("EROARE: Nu exista drum intre aceste strazi.", "text/plain");
+            return;
+        }
+
+        std::string response_text = "";
+        for (const auto& node : path) {
+            response_text += node + "\n";
+        }
+
+        res.set_content(response_text, "text/plain");
+        std::cout << "[Succes] Traseul a fost calculat si trimis inapoi instant!" << std::endl;
+    });
+
+    std::cout << "Serverul este GATA si asculta pe http://127.0.0.1:8085" << std::endl;
+    svr.listen("127.0.0.1", 8085);
 
     return 0;
 }
