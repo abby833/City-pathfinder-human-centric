@@ -55,4 +55,3 @@ if st.button("Calculează ruta optimă"):
                 st.error(f"Eroare în C++: {result.stderr}")
     else:
         st.warning("Te rog să selectezi ambele străzi!")
-
